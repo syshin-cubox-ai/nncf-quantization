@@ -1,5 +1,5 @@
 conda create -n nncf python=3.10 -y
 conda activate nncf
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install ultralytics onnx==1.16.0 onnxruntime==1.18.0 onnxslim
+pip install ultralytics onnx onnxruntime onnxslim
 pip install openvino-dev==2022.3.1 nncf==2.7.0
