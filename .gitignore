@@ -1,6 +1,7 @@
 *int8_openvino_model/
 runs/
 temp/
+datasets/*.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
