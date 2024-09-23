@@ -12,9 +12,9 @@ def transform_fn(data_item):
 
 
 def main():
-    input_path = pathlib.Path("C:/Users/synml/Desktop/qmagnet.xml")
+    input_path = pathlib.Path("C:/Users/synml/Desktop/mag_reg600_4a035d602e5e4d8f95cb2aec170b77c7.xml")
     output_path = input_path.with_stem(input_path.stem + "_int8")
-    dataset_root = "D:/data/fiqa"
+    dataset_root = "D:/data/fr"
     subset_size = 300
     fast_bias_correction = True
 
