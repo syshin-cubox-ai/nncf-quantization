@@ -1,5 +1,4 @@
 import pathlib
-import shutil
 import subprocess
 
 import nncf
@@ -44,9 +43,10 @@ def transform_fn(data_item) -> np.ndarray:
 
 def main():
     # Paths
-    pt_path = pathlib.Path("runs/pose/train/weights/last.pt")
-    data_yaml_path = pathlib.Path("datasets/coco-face-person.yaml")
-    xml_path = pathlib.Path(f"temp/{pt_path.stem}.xml")
+    pt_path = pathlib.Path("runs/pose/train6/weights/last.pt")
+    data_yaml_path = pathlib.Path("datasets/coco-pose-relabel.yaml")
+    onnx_path = pt_path.with_suffix(".onnx")
+    xml_path = pathlib.Path(f"{pt_path.stem}_openvino_model/{pt_path.stem}.xml")
     output_path = pathlib.Path(f"{pt_path.stem}_int8_openvino_model/{pt_path.stem}.xml")
 
     # YOLO args
@@ -57,7 +57,10 @@ def main():
     args.imgsz = (640,)
 
     # Export onnx
-    onnx_path = yolo_model.export(format="onnx", simplify=True)
+    if not onnx_path.is_file():
+        yolo_model.export(format="onnx", simplify=True)
+        print("Please re-run due to a forced termination bug.")
+        exit(0)
     assert pathlib.Path(onnx_path).is_file()
 
     # Convert openvino
@@ -88,11 +91,12 @@ def main():
         calibration_dataset=nncf.Dataset(get_int8_calibration_dataloader(args, yolo_model), transform_fn),
         preset=nncf.QuantizationPreset.MIXED,
         ignored_scope=ignored_scope,
+        fast_bias_correction=False,
     )
     serialize(quantized_ov_model, str(output_path))
 
     # Remove useless files
-    shutil.rmtree(xml_path.parent)
+    xml_path.with_suffix(".mapping").unlink()
 
 
 if __name__ == "__main__":
