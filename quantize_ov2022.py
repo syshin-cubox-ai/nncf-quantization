@@ -18,8 +18,7 @@ def main():
     subset_size = 300
     fast_bias_correction = True
 
-    core = openvino.runtime.Core()
-    ov_model = core.read_model(str(input_path))
+    ov_model = openvino.runtime.Core().read_model(str(input_path))
     val_dataset = datasets.ImageFolder(
         dataset_root,
         transform=transforms.Compose([transforms.ToTensor()])
