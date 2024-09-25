@@ -42,6 +42,10 @@ def transform_fn(data_item) -> np.ndarray:
 
 
 def main():
+    # Quantization args
+    subset_size = 300
+    fast_bias_correction = False
+
     # Paths
     pt_path = pathlib.Path("runs/pose/train6/weights/last.pt")
     data_yaml_path = pathlib.Path("datasets/coco-pose-relabel.yaml")
@@ -59,7 +63,7 @@ def main():
     # Export onnx
     if not onnx_path.is_file():
         yolo_model.export(format="onnx", simplify=True)
-        print("Please re-run due to a forced termination bug.")
+        print("\n!!Please re-run due to a forced termination bug!!")
         exit(0)
     assert pathlib.Path(onnx_path).is_file()
 
@@ -91,7 +95,8 @@ def main():
         calibration_dataset=nncf.Dataset(get_int8_calibration_dataloader(args, yolo_model), transform_fn),
         preset=nncf.QuantizationPreset.MIXED,
         ignored_scope=ignored_scope,
-        fast_bias_correction=False,
+        subset_size=subset_size,
+        fast_bias_correction=fast_bias_correction,
     )
     serialize(quantized_ov_model, str(output_path))
 
