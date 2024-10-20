@@ -47,7 +47,7 @@ def main():
     fast_bias_correction = False
 
     # Paths
-    pt_path = pathlib.Path("runs/pose/train6/weights/last.pt")
+    pt_path = pathlib.Path("runs/pose/train/weights/last.pt")
     data_yaml_path = pathlib.Path("datasets/coco-pose-relabel.yaml")
     onnx_path = pt_path.with_suffix(".onnx")
     xml_path = pathlib.Path(f"{pt_path.stem}_openvino_model/{pt_path.stem}.xml")
