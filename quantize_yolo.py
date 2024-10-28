@@ -62,7 +62,7 @@ def main():
 
     # Export onnx
     if not onnx_path.is_file():
-        yolo_model.export(format="onnx", simplify=True)
+        yolo_model.export(format="onnx", opset=17)
         print("\n!!Please re-run due to a forced termination bug!!")
         exit(0)
     assert pathlib.Path(onnx_path).is_file()
