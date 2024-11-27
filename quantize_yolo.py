@@ -87,7 +87,7 @@ def main():
                 f"/{head_module_name}/Div",
                 f"/{head_module_name}/dfl",
             ],
-            names=[f"/{head_module_name}/Sigmoid"],
+            types=["Sigmoid"],
         )
 
     quantized_ov_model = nncf.quantize(
