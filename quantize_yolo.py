@@ -48,7 +48,7 @@ def main():
 
     # Paths
     pt_path = pathlib.Path("runs/pose/train/weights/last.pt")
-    data_yaml_path = pathlib.Path("datasets/coco-pose-relabel.yaml")
+    data_yaml_path = pathlib.Path("datasets/face-mix.yaml")
     onnx_path = pt_path.with_suffix(".onnx")
     xml_path = pathlib.Path(f"{pt_path.stem}_openvino_model/{pt_path.stem}.xml")
     output_path = pathlib.Path(f"{pt_path.stem}_int8_openvino_model/{pt_path.stem}.xml")
@@ -68,7 +68,7 @@ def main():
     assert pathlib.Path(onnx_path).is_file()
 
     # Convert openvino
-    subprocess.run(f"mo --input_model {onnx_path} --output_dir {xml_path.parent}", check=True)
+    subprocess.run(f"mo --input_model {onnx_path} --output_dir {xml_path.parent} --compress_to_fp16", check=True)
     assert xml_path.is_file()
 
     # Quantize
