@@ -42,13 +42,13 @@ def transform_fn(data_item) -> np.ndarray:
 
 
 def main():
-    # Quantization args
+    # Args
+    pt_path = pathlib.Path("runs/pose/train/weights/last.pt")
+    data_yaml_path = pathlib.Path("datasets/face-mix.yaml")
     subset_size = 300
     fast_bias_correction = False
 
     # Paths
-    pt_path = pathlib.Path("runs/pose/train/weights/last.pt")
-    data_yaml_path = pathlib.Path("datasets/face-mix.yaml")
     onnx_path = pt_path.with_suffix(".onnx")
     xml_path = pathlib.Path(f"{pt_path.stem}_openvino_model/{pt_path.stem}.xml")
     output_path = pathlib.Path(f"{pt_path.stem}_int8_openvino_model/{pt_path.stem}.xml")
@@ -71,10 +71,11 @@ def main():
     subprocess.run(f"mo --input_model {onnx_path} --output_dir {xml_path.parent} --compress_to_fp16", check=True)
     assert xml_path.is_file()
 
-    # Quantize
+    # Read model
     core = openvino.runtime.Core()
     ov_model = core.read_model(str(xml_path))
 
+    # Make ignored scope
     ignored_scope = None
     if isinstance(yolo_model.model.model[-1], Detect):
         # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
@@ -90,6 +91,7 @@ def main():
             types=["Sigmoid"],
         )
 
+    # Quantize
     quantized_ov_model = nncf.quantize(
         model=ov_model,
         calibration_dataset=nncf.Dataset(get_int8_calibration_dataloader(args, yolo_model), transform_fn),
