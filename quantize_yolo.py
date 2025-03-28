@@ -43,8 +43,8 @@ def transform_fn(data_item) -> np.ndarray:
 
 def main():
     # Args
-    pt_path = pathlib.Path("runs/pose/train/weights/last.pt")
-    data_yaml_path = pathlib.Path("datasets/face-mix.yaml")
+    pt_path = pathlib.Path("runs/pose/face_detector/weights/last.pt").resolve(strict=True)
+    data_yaml_path = pathlib.Path("D:/data/face-mix/data.yaml").resolve(strict=True)
     subset_size = 300
     fast_bias_correction = False
 
