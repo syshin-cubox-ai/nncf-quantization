@@ -18,7 +18,9 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
 def get_int8_calibration_dataloader(args, model, prefix=colorstr("OpenVINO:")):
     """Build and return a dataloader suitable for calibration of INT8 models."""
     LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={args.data}'")
-    data = (check_cls_dataset if model.task == "classify" else check_det_dataset)(args.data)
+    data = (check_cls_dataset if model.task == "classify" else check_det_dataset)(
+        args.data
+    )
     dataset = YOLODataset(
         data[args.split or "val"],
         data=data,
@@ -29,21 +31,29 @@ def get_int8_calibration_dataloader(args, model, prefix=colorstr("OpenVINO:")):
     )
     n = len(dataset)
     if n < 300:
-        LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
+        LOGGER.warning(
+            f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images."
+        )
     return build_dataloader(dataset, batch=1, workers=0)  # required for batch loading
 
 
 def transform_fn(data_item) -> np.ndarray:
     """Quantization transform function."""
-    data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-    assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-    im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+    data_item: torch.Tensor = (
+        data_item["img"] if isinstance(data_item, dict) else data_item
+    )
+    assert data_item.dtype == torch.uint8, (
+        "Input image must be uint8 for the quantization preprocessing"
+    )
+    im = (
+        data_item.numpy().astype(np.float32) / 255.0
+    )  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
     return np.expand_dims(im, 0) if im.ndim == 3 else im
 
 
 def main():
     # Args
-    pt_path = pathlib.Path("runs/pose/face_detector/weights/last.pt").resolve(strict=True)
+    pt_path = pathlib.Path("runs/pose/train2/weights/last.pt").resolve(strict=True)
     data_yaml_path = pathlib.Path("D:/data/face-mix/data.yaml").resolve(strict=True)
     subset_size = 300
     fast_bias_correction = False
@@ -68,7 +78,10 @@ def main():
     assert pathlib.Path(onnx_path).is_file()
 
     # Convert openvino
-    subprocess.run(f"mo --input_model {onnx_path} --output_dir {xml_path.parent} --compress_to_fp16", check=True)
+    subprocess.run(
+        f"mo --input_model {onnx_path} --output_dir {xml_path.parent} --compress_to_fp16",
+        check=True,
+    )
     assert xml_path.is_file()
 
     # Read model
@@ -79,7 +92,9 @@ def main():
     ignored_scope = None
     if isinstance(yolo_model.model.model[-1], Detect):
         # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
-        head_module_name = ".".join(list(yolo_model.model.named_modules())[-1][0].split(".")[:2])
+        head_module_name = ".".join(
+            list(yolo_model.model.named_modules())[-1][0].split(".")[:2]
+        )
         ignored_scope = nncf.IgnoredScope(  # ignore operations
             patterns=[
                 f"/{head_module_name}/Add",
@@ -94,7 +109,9 @@ def main():
     # Quantize
     quantized_ov_model = nncf.quantize(
         model=ov_model,
-        calibration_dataset=nncf.Dataset(get_int8_calibration_dataloader(args, yolo_model), transform_fn),
+        calibration_dataset=nncf.Dataset(
+            get_int8_calibration_dataloader(args, yolo_model), transform_fn
+        ),
         preset=nncf.QuantizationPreset.MIXED,
         ignored_scope=ignored_scope,
         subset_size=subset_size,

@@ -20,14 +20,17 @@ def main():
 
     ov_model = openvino.runtime.Core().read_model(str(input_path))
     val_dataset = datasets.ImageFolder(
-        dataset_root,
-        transform=transforms.Compose([transforms.ToTensor()])
+        dataset_root, transform=transforms.Compose([transforms.ToTensor()])
     )
     dataset_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1)
 
     calibration_dataset = nncf.Dataset(dataset_loader, transform_fn)
-    quantized_ov_model = nncf.quantize(ov_model, calibration_dataset,
-                                       subset_size=subset_size, fast_bias_correction=fast_bias_correction)
+    quantized_ov_model = nncf.quantize(
+        ov_model,
+        calibration_dataset,
+        subset_size=subset_size,
+        fast_bias_correction=fast_bias_correction,
+    )
 
     openvino.runtime.serialize(quantized_ov_model, str(output_path))
 
