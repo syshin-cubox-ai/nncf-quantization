@@ -55,7 +55,7 @@ def main():
     # Args
     pt_path = Path("runs/detect/bezel_detector/weights/last.pt").resolve(strict=True)
     data_yaml_path = Path(
-        "D:/data/home-collected-bezel-background-v5/data.yaml"
+        "../../data/home-collected-bezel-background-v5/data.yaml"
     ).resolve(strict=True)
     subset_size = 300
     fast_bias_correction = False
