@@ -16,25 +16,35 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr
 
 
 def get_int8_calibration_dataloader(args, model, prefix=colorstr("OpenVINO:")):
-    """Build and return a dataloader suitable for calibration of INT8 models."""
+    """Build and return a dataloader for calibration of INT8 models."""
     LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={args.data}'")
     data = (check_cls_dataset if model.task == "classify" else check_det_dataset)(
         args.data
     )
+    # TensorRT INT8 calibration should use 2x batch size
+    batch = args.batch * (2 if args.format == "engine" else 1)
     dataset = YOLODataset(
         data[args.split or "val"],
         data=data,
+        fraction=args.fraction,
         task=model.task,
         imgsz=args.imgsz[0],
         augment=False,
-        batch_size=1,
+        batch_size=batch,
     )
     n = len(dataset)
-    if n < 300:
-        LOGGER.warning(
-            f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images."
+    if n < args.batch:
+        raise ValueError(
+            f"The calibration dataset ({n} images) must have at least as many images as the batch size "
+            f"('batch={args.batch}')."
         )
-    return build_dataloader(dataset, batch=1, workers=0)  # required for batch loading
+    elif n < 300:
+        LOGGER.warning(
+            f"{prefix} >300 images recommended for INT8 calibration, found {n} images."
+        )
+    return build_dataloader(
+        dataset, batch=batch, workers=0
+    )  # required for batch loading
 
 
 def transform_fn(data_item) -> np.ndarray:
